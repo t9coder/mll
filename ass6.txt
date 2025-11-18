@@ -1,0 +1,67 @@
+import pandas as pd
+
+data = pd.read_csv("C:/Users/Admin/OneDrive/Desktop/sem5/ML/ML practical/drive-download-20251102T105633Z-1-001/Assignment 6/SMSSpamCollection", sep="\t", names=["label", "message"])
+
+
+import re
+
+def clean_msg(text):
+    text = text.lower()
+    text = re.sub(r'[^a-z ]', ' ', text)
+    return text
+
+data['clean_msg'] = data['message'].apply(clean_msg)
+print("Step 3 Completed: Messages cleaned!")
+print(data[['message','clean_msg']].head(), "\n")
+
+
+from sklearn.model_selection import train_test_split
+
+X = data['clean_msg']
+y = data['label'].map({'ham':0, 'spam':1})
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=1
+)
+
+print("Step 4 Completed: Train-test split done!")
+print("Training size:", len(X_train))
+print("Testing size:", len(X_test), "\n")
+
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+tf = TfidfVectorizer()
+X_train_tf = tf.fit_transform(X_train)
+X_test_tf = tf.transform(X_test)
+
+print("Step 5 Completed: TF-IDF conversion done!")
+print("Train TF-IDF Shape:", X_train_tf.shape)
+print("Test TF-IDF Shape:", X_test_tf.shape, "\n")
+
+# STEP 6: TRAIN MODEL
+# -------------------------
+from sklearn.naive_bayes import MultinomialNB
+
+model = MultinomialNB()
+model.fit(X_train_tf, y_train)
+
+
+
+# STEP 7: PREDICTION
+# -------------------------
+y_pred = model.predict(X_test_tf)
+
+
+
+# STEP 8: EVALUATION
+# -------------------------
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+
+print("Step 8 Completed: Evaluation Results")
+print("--------------------------------------")
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("Precision:", precision_score(y_test, y_pred))
+print("Recall:", recall_score(y_test, y_pred))
+print("F1 Score:", f1_score(y_test, y_pred))
+print("\nConfusion Matrix:\n", confusion_matrix(y_test, y_pred))

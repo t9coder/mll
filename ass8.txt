@@ -1,0 +1,54 @@
+!pip install mlxtend
+import pandas as pd
+import csv
+from mlxtend.preprocessing import TransactionEncoder
+from mlxtend.frequent_patterns import apriori,association_rules
+
+dataset = []
+with open ('Market_Basket_Optimisation.csv') as file:
+  reader = csv.reader(file,delimiter=',')
+  for row in reader:
+    dataset+= [row]
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+dataset[0:10]
+len(dataset)
+te = TransactionEncoder()
+
+x= te.fit_transform(dataset)
+
+x
+te.columns_
+len(te.columns_)
+df = pd.DataFrame(x,columns=te.columns_)
+df.head()
+#find frequent items
+freq_itemset = apriori(df,min_support=0.01,use_colnames=True)
+freq_itemset
+rules = association_rules(freq_itemset,metric='confidence',min_threshold=0.25)
+rules
+rules= rules[['antecedents', 'consequents','support','confidence']]
+rules.head()
+rules[rules['antecedents'] =={'cake'}]
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(8,6))
+plt.scatter(rules['support'], rules['confidence'], alpha=0.6, color='teal')
+plt.title('Association Rules: Support vs Confidence')
+plt.xlabel('Support')
+plt.ylabel('Confidence')
+plt.grid(True)
+plt.show()
+
+
+top10 = rules.sort_values(by='confidence', ascending=False).head(10)
+top10['rule'] = top10['antecedents'].astype(str) + " → " + top10['consequents'].astype(str)
+
+plt.figure(figsize=(10,5))
+plt.barh(top10['rule'], top10['confidence'])
+plt.xlabel('Confidence')
+plt.ylabel('Rule')
+plt.title('Top 10 Association Rules by Confidence')
+plt.gca().invert_yaxis()
+plt.tight_layout()
+plt.show()

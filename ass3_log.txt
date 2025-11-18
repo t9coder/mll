@@ -1,0 +1,45 @@
+
+
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report, accuracy_score, precision_score, recall_score, f1_score
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+data = pd.read_csv("C:/Users/Admin/OneDrive/Desktop/Machine Learning Lab/Assignment_No-3/Admission_Predict.csv")
+print(data)
+print(data.columns)
+
+data['Admit'] = (data['Chance of Admit '] >= 0.5).astype(int)
+data['Admit']
+
+plt.figure(figsize=(20, 10))
+sns.heatmap(data.corr(), annot=True)
+
+corr = data.corr()['Admit'].sort_values(ascending=False)
+corr
+
+features = ['GRE Score', 'TOEFL Score', 'University Rating', 'SOP', 'LOR ', 'CGPA', 'Research']
+target = ['Admit']
+
+x = data[features]
+y = data[target]
+
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=42)
+
+scaler = StandardScaler()
+x_train_scaled = scaler.fit_transform(x_train)
+x_test_scaled = scaler.transform(x_test)
+
+log_reg = LogisticRegression(class_weight='balanced', max_iter=1000)
+log_reg.fit(x_train_scaled, y_train.values.ravel())
+
+y_pred = log_reg.predict(x_test_scaled)
+
+print("acc:", accuracy_score(y_test, y_pred))
+
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+
